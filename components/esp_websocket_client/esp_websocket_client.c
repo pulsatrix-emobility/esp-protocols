@@ -697,6 +697,10 @@ esp_websocket_client_handle_t esp_websocket_client_init(const esp_websocket_clie
     });
 
     client->buffer_size = buffer_size;
+    
+    // initial delay - can be updated using esp_websocket_client_set_reconnect_delay_ms()
+    client->wait_timeout_ms = WEBSOCKET_RECONNECT_TIMEOUT_MS;
+    
     return client;
 
 _websocket_init_fail:
@@ -845,6 +849,10 @@ esp_err_t esp_websocket_client_append_header(esp_websocket_client_handle_t clien
     cfg->headers = new_headers;
 
     return ESP_OK;
+}
+
+void esp_websocket_client_set_reconnect_delay_ms(esp_websocket_client_handle_t client, int delay_ms) {
+  client->wait_timeout_ms = delay_ms < 100 ? 100 : delay_ms;
 }
 
 static esp_err_t esp_websocket_client_recv(esp_websocket_client_handle_t client)

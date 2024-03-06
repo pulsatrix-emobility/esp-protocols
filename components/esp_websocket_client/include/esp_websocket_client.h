@@ -184,6 +184,14 @@ esp_err_t esp_websocket_client_set_headers(esp_websocket_client_handle_t client,
 esp_err_t esp_websocket_client_append_header(esp_websocket_client_handle_t client, const char *key, const char *value);
 
 /**
+ * @brief      Set the reconnect delay in milliseconds to be used when auto-reconnecting is enabled.
+ *
+ * @param[in]  client  The client
+ * @param[in]  delay_ms     The delay in milliseconds
+ */
+void esp_websocket_client_set_reconnect_delay_ms(esp_websocket_client_handle_t client, int delay_ms);
+
+/**
  * @brief      Open the WebSocket connection
  *
  * @param[in]  client  The client
