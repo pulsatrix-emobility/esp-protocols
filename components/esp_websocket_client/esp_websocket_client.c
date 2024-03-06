@@ -105,6 +105,7 @@ typedef enum {
     WEBSOCKET_STATE_CONNECTED,
     WEBSOCKET_STATE_WAIT_TIMEOUT,
     WEBSOCKET_STATE_CLOSING,
+    WEBSOCKET_STATE_TRANSPORT_FAILED
 } websocket_client_state_t;
 
 struct esp_websocket_client {
@@ -579,14 +580,7 @@ static int esp_websocket_client_send_with_exact_opcode(esp_websocket_client_hand
             } else {
                 esp_websocket_client_error(client, "esp_transport_write() returned %d, errno=%d", ret, errno);
             }
-            esp_transport_close(client->transport);
-            
-            if (client->config->auto_reconnect) {
-              client->wait_timeout_ms = WEBSOCKET_RECONNECT_TIMEOUT_MS;
-              client->reconnect_tick_ms = _tick_get_ms();
-              ESP_LOGI(TAG, "Reconnect after %d ms", client->wait_timeout_ms);
-            }
-            client->state = WEBSOCKET_STATE_WAIT_TIMEOUT;
+            client->state = WEBSOCKET_STATE_TRANSPORT_FAILED;
             return ret;
         }
         opcode = 0;
@@ -1023,6 +1017,10 @@ static void esp_websocket_client_task(void *pv)
                 esp_transport_ws_send_raw(client->transport, WS_TRANSPORT_OPCODES_CLOSE | WS_TRANSPORT_OPCODES_FIN, NULL, 0, client->config->network_timeout_ms);
                 xEventGroupSetBits(client->status_bits, CLOSE_FRAME_SENT_BIT);
             }
+            break;
+        case WEBSOCKET_STATE_TRANSPORT_FAILED:
+            ESP_LOGD(TAG, "Handling transport failure");
+            esp_websocket_client_abort_connection(client, WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT);
             break;
         default:
             ESP_LOGD(TAG, "Client run iteration in a default state: %d", client->state);
