@@ -579,7 +579,14 @@ static int esp_websocket_client_send_with_exact_opcode(esp_websocket_client_hand
             } else {
                 esp_websocket_client_error(client, "esp_transport_write() returned %d, errno=%d", ret, errno);
             }
-            esp_websocket_client_abort_connection(client, WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT);
+            esp_transport_close(client->transport);
+            
+            if (client->config->auto_reconnect) {
+              client->wait_timeout_ms = WEBSOCKET_RECONNECT_TIMEOUT_MS;
+              client->reconnect_tick_ms = _tick_get_ms();
+              ESP_LOGI(TAG, "Reconnect after %d ms", client->wait_timeout_ms);
+            }
+            client->state = WEBSOCKET_STATE_WAIT_TIMEOUT;
             return ret;
         }
         opcode = 0;
