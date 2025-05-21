@@ -445,6 +445,10 @@ static void destroy_and_free_resources(esp_websocket_client_handle_t client)
     if (client->status_bits) {
         vEventGroupDelete(client->status_bits);
     }
+    if (client->event_handle) {
+      ESP_LOGE(TAG, "Delete the client task");
+      vTaskDelete(client->task_handle);
+    }
     free(client);
     client = NULL;
 }
@@ -1118,6 +1122,11 @@ static void esp_websocket_client_task(void *pv)
         } else if (WEBSOCKET_STATE_WAIT_TIMEOUT == client->state) {
             // waiting for reconnecting...
             vTaskDelay(client->wait_timeout_ms / 2 / portTICK_PERIOD_MS);
+
+            if (client == NULL) {
+              ESP_LOGE(TAG, "There is no valid client");
+              vTaskDelete(NULL);
+            }
         } else if (WEBSOCKET_STATE_CLOSING == client->state &&
                    (CLOSE_FRAME_SENT_BIT & xEventGroupGetBits(client->status_bits))) {
             ESP_LOGD(TAG, " Waiting for TCP connection to be closed by the server");
