@@ -445,10 +445,6 @@ static void destroy_and_free_resources(esp_websocket_client_handle_t client)
     if (client->status_bits) {
         vEventGroupDelete(client->status_bits);
     }
-    if (client->event_handle) {
-      ESP_LOGE(TAG, "Delete the client task");
-      vTaskDelete(client->task_handle);
-    }
     free(client);
     client = NULL;
 }
