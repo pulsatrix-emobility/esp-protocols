@@ -786,7 +786,9 @@ esp_err_t esp_websocket_client_destroy(esp_websocket_client_handle_t client)
     }
 
     if (client->status_bits && (STOPPED_BIT & xEventGroupGetBits(client->status_bits)) == 0) {
+    ESP_LOGI(TAG, "Client task still running - stopping it");
         stop_wait_task(client);
+    ESP_LOGI(TAG, "Client task stopped");
     }
 
     destroy_and_free_resources(client);
