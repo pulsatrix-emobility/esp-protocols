@@ -1146,9 +1146,10 @@ static void esp_websocket_client_task(void *pv)
     esp_transport_close(client->transport);
     xEventGroupSetBits(client->status_bits, STOPPED_BIT);
     client->state = WEBSOCKET_STATE_UNKNOW;
-    if (client->selected_for_destroying == true) {
-        destroy_and_free_resources(client);
-    }
+    // causing Crash, As we are not using this and calling our own destroy this can be removed
+    // if (client->selected_for_destroying == true) {
+    //     destroy_and_free_resources(client);
+    // }
     vTaskDelete(NULL);
 }
 
